@@ -113,7 +113,9 @@ def make_robot():
     You'll want to call this after you call `run`.
     """
     robot = Robot()
-    robot.set(0, 1, 0)
+    # The original version is : robot.set(0, 1, 0). I convert the number from int to float, in order to make the code has
+    # same behavior with python2.7 and python3.4
+    robot.set(0.0, 1.0, 0.0)
     robot.set_steering_drift(10 / 180 * np.pi)
     return robot
 

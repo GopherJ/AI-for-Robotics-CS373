@@ -23,7 +23,7 @@
 #
 from math import *
 import random
-
+import matplotlib.pyplot as plt  # Use matplotlib to visualize the result. If you use the Udacity code editor, you cannot display the result, so you can comment this line.
 
 # ------------------------------------------------
 #
@@ -133,7 +133,7 @@ class robot:
         return '[x=%.5f y=%.5f orient=%.5f]' % (self.x, self.y, self.orientation)
 
     ############## ONLY ADD / MODIFY CODE BELOW THIS LINE ####################
-
+    # Define a function to calculate the cte value( Crosstrack error)
     def cte(self, radius):
         #
         #
@@ -149,6 +149,48 @@ class robot:
             cte = sqrt((self.x - 3.0 * radius) ** 2.0 + (self.y - radius) ** 2.0) - radius
 
         return cte
+
+
+#  Define a function to generate the reference path that my robot need to follow
+#  The return values can help visualize the result.
+def generate_reference_path(radius):
+    x_reference_trajectory = []
+    y_reference_trajectory = []
+
+    for i in range(int(4 * radius) + 1):
+        x = float(i)
+        x_reference_trajectory.append(x)
+        if x < radius:
+            y = sqrt(radius ** 2.0 - (x - radius) ** 2.0) + radius
+        elif x < 3 * radius:
+            y = 2 * radius
+        else:
+            y = sqrt(radius ** 2.0 - (x - 3.0 * radius) ** 2.0) + radius
+        y_reference_trajectory.append(y)
+
+    for i in range(int(4 * radius), 0, -1):
+        x = float(i)
+        x_reference_trajectory.append(x)
+        if x < radius:
+            y = - sqrt(radius ** 2.0 - (x - radius) ** 2.0) + radius
+        elif x < 3 * radius:
+            y = 0.0
+        else:
+            y = - sqrt(radius ** 2.0 - (x - 3.0 * radius) ** 2.0) + radius
+        y_reference_trajectory.append(y)
+
+    return x_reference_trajectory, y_reference_trajectory
+
+
+# Define a function to visualize the Racetrack PID controller result.
+# If you want to test this script in the Udacity code editor, you should not use this function because the Udacity code
+# editor doesn't have a display environment.
+def plot_paths(x_reference, y_reference, x_controller, y_controller):
+    ax = plt.subplot(1, 1, 1)
+    ax.plot(x_reference, y_reference, 'r-', label='Racetrack Reference')
+    ax.plot(x_controller, y_controller, 'bd', label='Racetrack PID Controller')
+    ax.legend()
+    plt.show()
 
 
 ############## ONLY ADD / MODIFY CODE ABOVE THIS LINE ####################
@@ -168,6 +210,8 @@ def run(params, radius, printflag=False):
     N = 200
 
     crosstrack_error = myrobot.cte(radius)  # You need to define the cte function!
+    x_trajectory = []
+    y_trajectory = []
 
     for i in range(N * 2):
         diff_crosstrack_error = - crosstrack_error
@@ -178,15 +222,19 @@ def run(params, radius, printflag=False):
                 - params[1] * diff_crosstrack_error \
                 - params[2] * int_crosstrack_error
         myrobot = myrobot.move(steer, speed)
+        x_trajectory.append(myrobot.x)  # Add this line to visualize the path of robot
+        y_trajectory.append(myrobot.y)  # Add this line to visualize the path of robot
         if i >= N:
             err += crosstrack_error ** 2
         if printflag:
             print(myrobot)
-    return err / float(N)
+    return x_trajectory, y_trajectory, err / float(
+        N)  # Add x_trajectory and y_trajectory variables to visualize the path of robot
 
 
 radius = 25.0
 params = [10.0, 15.0, 0]
-err = run(params, radius, True)
+x_trajectory, y_trajectory, err = run(params, radius, True)
+# x_reference, y_reference = generate_reference_path(radius)  # if you want to test this script in the Udacity code editor, you should comment this line.
+# plot_paths(x_reference, y_reference, x_trajectory, y_trajectory)  # if you want to test this script in the Udacity code editor, you should comment this line.
 print('\nFinal parameters: ', params, '\n ->', err)
-

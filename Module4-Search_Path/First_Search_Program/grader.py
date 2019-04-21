@@ -1,5 +1,3 @@
-# Created by Udacity, Modified by zhao-zh10
-# Convert the f-prefix string to format string, so that this script can be tested in python version below 3.6.
 def test(student_func):
     
     try:

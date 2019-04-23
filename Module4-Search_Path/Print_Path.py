@@ -1,3 +1,4 @@
+# Author: zhao-zh10
 # -----------
 # User Instructions:
 #
@@ -35,12 +36,13 @@ delta = [[-1, 0],  # go up
 delta_name = ['^', '<', 'v', '>']
 
 
-def search(grid, init, goal, cost):
+def search(grid, init, goal, cost, debug_flag = True):
     # ----------------------------------------
     # modify code below
     # ----------------------------------------
-    closed = [[0 for row in range(len(grid[0]))] for col in range(len(grid))]
+    closed = [[0 for col in range(len(grid[0]))] for row in range(len(grid))]
     closed[init[0]][init[1]] = 1
+    action = [[0 for col in range(len(grid[0]))] for row in range(len(grid))]
 
     x = init[0]
     y = init[1]
@@ -69,10 +71,30 @@ def search(grid, init, goal, cost):
                 for i in range(len(delta)):
                     x2 = x + delta[i][0]
                     y2 = y + delta[i][1]
-                    if x2 >= 0 and x2 < len(grid) and y2 >= 0 and y2 < len(grid[0]):
+                    if 0 <= x2 < len(grid) and 0 <= y2 < len(grid[0]):
                         if closed[x2][y2] == 0 and grid[x2][y2] == 0:
                             g2 = g + cost
                             open.append([g2, x2, y2])
                             closed[x2][y2] = 1
+                            action[x2][y2] = i
 
+    expand = None
+    if found is True:
+        expand = [[' ' for col in range(len(grid[0]))] for row in range(len(grid))]
+        expand[goal[0]][goal[1]] = '*'
+        x_next = goal[0]
+        y_next = goal[1]
+        while not (x_next == init[0] and y_next == init[1]):
+            x_forward = x_next - delta[action[x_next][y_next]][0]
+            y_forward = y_next - delta[action[x_next][y_next]][1]
+            expand[x_forward][y_forward] = delta_name[action[x_next][y_next]]
+            x_next = x_forward
+            y_next = y_forward
+
+    if debug_flag is True:
+        for m in range(len(expand)):
+            print(expand[m])
     return expand  # make sure you return the shortest path
+
+
+search(grid, init, goal, cost)

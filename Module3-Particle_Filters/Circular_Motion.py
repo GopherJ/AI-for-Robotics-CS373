@@ -1,3 +1,4 @@
+# Author: zhao-zh10
 # -----------------
 # USER INSTRUCTIONS
 #
@@ -20,7 +21,6 @@
 # There are test cases which you are free to use at the
 # bottom. If you uncomment them for testing, make sure you
 # re-comment them before you submit.
-
 from math import *
 import random
 
@@ -32,7 +32,9 @@ import random
 #
 # NOTE: Landmark coordinates are given in (y, x) form and NOT
 # in the traditional (x, y) format!
-
+# In this assignment, treat the world as an infinite grid: the robot can move so that its x- or y-coordinates
+# are larger in magnitude than the world_size variable.
+# (The world_size variable only affects the robot's initial coordinates.)
 landmarks = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]  # position of 4 landmarks
 world_size = 100.0  # world is NOT cyclic. Robot is allowed to travel "out of bounds"
 max_steering_angle = pi / 4  # You don't need to use this value, but it is good to keep in mind the limitations of a real car.
@@ -70,7 +72,7 @@ class robot:
 
     def set(self, new_x, new_y, new_orientation):
         if new_orientation < 0 or new_orientation >= 2 * pi:
-            raise ValueError, 'Orientation must be in [0..2pi]'
+            raise(ValueError, 'Orientation must be in [0..2pi]')
         self.x = float(new_x)
         self.y = float(new_y)
         self.orientation = float(new_orientation)
@@ -94,10 +96,42 @@ class robot:
     #   move along a section of a circular path according to motion
     #
 
-    def move(self, motion):  # Do not change the name of this function
+    def move(self, motion, tolerance = 0.001):  # Do not change the name of this function
 
         # ADD CODE HERE
+        steering_angle = motion[0]
+        distance = motion[1]
 
+        if abs(steering_angle) > max_steering_angle:
+            raise(ValueError, 'Exceeding max steering angle of a real car.')
+
+        if distance < 0.0:
+            raise(ValueError, 'Moving backwards is not valid.')
+
+        # apply noise
+        steering_angle_2 = random.gauss(steering_angle, self.steering_noise)
+        distance_2 = random.gauss(distance, self.distance_noise)
+
+        # Execute motion
+        turn = distance_2 / self.length * tan(steering_angle_2)
+        if abs(turn) < tolerance:
+            # approximate by straight line motion
+            new_x = self.x + distance_2 * cos(self.orientation)
+            new_y = self.y + distance_2 * sin(self.orientation)
+            new_orientation = (self.orientation + turn) % (2.0 * pi)
+        else:
+            # approximate bicycle model for motion
+            radius = distance_2 / turn
+            cx = self.x - sin(self.orientation) * radius
+            cy = self.y + cos(self.orientation) * radius
+            new_x = cx + sin(self.orientation + turn) * radius
+            new_y = cy - cos(self.orientation + turn) * radius
+            new_orientation = (self.orientation + turn) % (2.0 * pi)
+
+        # make a new copy
+        result = robot(self.length)
+        result.set(new_x, new_y, new_orientation)
+        result.set_noise(self.bearing_noise, self.steering_noise, self.distance_noise)
         return result  # make sure your move function returns an instance
         # of the robot class with the correct coordinates.
 
@@ -118,23 +152,23 @@ class robot:
 ##       Robot:     [x=39.034 y=7.1270 orient=0.2886]
 ##
 ##
-##length = 20.
-##bearing_noise  = 0.0
-##steering_noise = 0.0
-##distance_noise = 0.0
-##
-##myrobot = robot(length)
-##myrobot.set(0.0, 0.0, 0.0)
-##myrobot.set_noise(bearing_noise, steering_noise, distance_noise)
-##
-##motions = [[0.0, 10.0], [pi / 6.0, 10], [0.0, 20.0]]
-##
-##T = len(motions)
-##
-##print 'Robot:    ', myrobot
-##for t in range(T):
-##    myrobot = myrobot.move(motions[t])
-##    print 'Robot:    ', myrobot
+# length = 20.
+# bearing_noise  = 0.0
+# steering_noise = 0.0
+# distance_noise = 0.0
+#
+# myrobot = robot(length)
+# myrobot.set(0.0, 0.0, 0.0)
+# myrobot.set_noise(bearing_noise, steering_noise, distance_noise)
+#
+# motions = [[0.0, 10.0], [pi / 6.0, 10], [0.0, 20.0]]
+#
+# T = len(motions)
+#
+# print('Robot:    ', myrobot)
+# for t in range(T):
+#    myrobot = myrobot.move(motions[t])
+#    print('Robot:    ', myrobot)
 ##
 ##
 
@@ -158,23 +192,23 @@ class robot:
 ##      Robot:     [x=83.736 y=46.485 orient=1.0135]
 ##
 ##
-##length = 20.
-##bearing_noise  = 0.0
-##steering_noise = 0.0
-##distance_noise = 0.0
-##
-##myrobot = robot(length)
-##myrobot.set(0.0, 0.0, 0.0)
-##myrobot.set_noise(bearing_noise, steering_noise, distance_noise)
-##
-##motions = [[0.2, 10.] for row in range(10)]
-##
-##T = len(motions)
-##
-##print 'Robot:    ', myrobot
-##for t in range(T):
-##    myrobot = myrobot.move(motions[t])
-##    print 'Robot:    ', myrobot
+# length = 20.
+# bearing_noise  = 0.0
+# steering_noise = 0.0
+# distance_noise = 0.0
+#
+# myrobot = robot(length)
+# myrobot.set(0.0, 0.0, 0.0)
+# myrobot.set_noise(bearing_noise, steering_noise, distance_noise)
+#
+# motions = [[0.2, 10.] for row in range(10)]
+#
+# T = len(motions)
+#
+# print('Robot:    ', myrobot)
+# for t in range(T):
+#    myrobot = myrobot.move(motions[t])
+#    print('Robot:    ', myrobot)
 
 ## IMPORTANT: You may uncomment the test cases below to test your code.
 ## But when you submit this code, your test cases MUST be commented

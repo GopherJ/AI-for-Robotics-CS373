@@ -1,3 +1,4 @@
+# Author: zhao-zh10
 # --------------
 # USER INSTRUCTIONS
 #
@@ -34,14 +35,93 @@ delta_name = ['^', '<', 'v', '>']  # Use these when creating your policy grid.
 # ---------------------------------------------
 #  Modify the function stochastic_value below
 # ---------------------------------------------
+# # My Solution
+# def stochastic_value(grid, goal, cost_step, collision_cost, success_prob):
+#     failure_prob = (1.0 - success_prob) / 2.0  # Probability(stepping left) = prob(stepping right) = failure_prob
+#     value = [[collision_cost for col in range(len(grid[0]))] for row in range(len(grid))]
+#     policy = [[' ' for col in range(len(grid[0]))] for row in range(len(grid))]
+#
+#     change = True
+#     while change:
+#         change = False
+#         for x in range(len(grid)):
+#             for y in range(len(grid[0])):
+#                 if x == goal[0] and y == goal[1]:
+#                     if value[x][y] > 0:
+#                         value[x][y] = 0
+#                         policy[x][y] = '*'
+#                         change = True
+#                 elif grid[x][y] == 0:
+#                     for a in range(len(delta)):
+#                         x2 = x + delta[a][0]
+#                         y2 = y + delta[a][1]
+#                         if 0 <= x2 < len(grid) and 0 <= y2 < len(grid[0]) and grid[x2][y2] == 0:
+#                             x_stepping_left = x + delta[(a+1)%len(delta)][0]
+#                             y_stepping_left = y + delta[(a+1)%len(delta)][1]
+#                             if 0 <= x_stepping_left < len(grid) and 0 <= y_stepping_left < len(grid[0]) \
+#                                     and grid[x_stepping_left][y_stepping_left] == 0:
+#                                 value_stepping_left = value[x_stepping_left][y_stepping_left]
+#                             else:
+#                                 value_stepping_left = collision_cost
+#
+#                             x_stepping_right = x + delta[(a-1)%len(delta)][0]
+#                             y_stepping_right = y + delta[(a-1)%len(delta)][1]
+#                             if 0 <= x_stepping_right < len(grid) and 0 <= y_stepping_right < len(grid[0]) \
+#                                     and grid[x_stepping_right][y_stepping_right] == 0:
+#                                 value_stepping_right = value[x_stepping_right][y_stepping_right]
+#                             else:
+#                                 value_stepping_right = collision_cost
+#
+#                             value_backup = success_prob * value[x2][y2] + failure_prob * value_stepping_left +\
+#                                 failure_prob * value_stepping_right + cost_step
+#                             if value_backup < value[x][y]:
+#                                 value[x][y] = value_backup
+#                                 policy[x][y] = delta_name[a]
+#                                 change = True
+#
+#     return value, policy
 
+
+# Udacity Sebastian Thrun's Solution
 def stochastic_value(grid, goal, cost_step, collision_cost, success_prob):
     failure_prob = (1.0 - success_prob) / 2.0  # Probability(stepping left) = prob(stepping right) = failure_prob
     value = [[collision_cost for col in range(len(grid[0]))] for row in range(len(grid))]
     policy = [[' ' for col in range(len(grid[0]))] for row in range(len(grid))]
 
-    return value, policy
+    change = True
+    while change:
+        change = False
+        for x in range(len(grid)):
+            for y in range(len(grid[0])):
+                if x == goal[0] and y == goal[1]:
+                    if value[x][y] > 0:
+                        value[x][y] = 0
+                        policy[x][y] = '*'
+                        change = True
+                elif grid[x][y] == 0:
+                    for a in range(len(delta)):
+                        v2 = cost_step
+                        # explore the different action outcomes
+                        for i in range(-1, 2):
+                            a2 = (a + i) % len(delta)
+                            x2 = x + delta[a2][0]
+                            y2 = y + delta[a2][1]
 
+                            if i == 0:
+                                p2 = success_prob
+                            else:
+                                p2 = failure_prob
+                            if 0 <= x2 < len(grid) and 0 <= y2 < len(grid[0]) and grid[x2][y2] == 0:
+                                v2 += p2 * value[x2][y2]
+                            else:
+                                v2 += p2 * collision_cost
+
+                        if v2 < value[x][y]:
+                            change = True
+                            value[x][y] = v2
+                            policy[x][y] = delta_name[a]
+
+    return value, policy
 
 # ---------------------------------------------
 #  Use the code below to test your solution
@@ -58,11 +138,9 @@ success_prob = 0.5
 
 value, policy = stochastic_value(grid, goal, cost_step, collision_cost, success_prob)
 for row in value:
-    print
-    row
+    print(row)
 for row in policy:
-    print
-    row
+    print(row)
 
 # Expected outputs:
 #
@@ -77,3 +155,4 @@ for row in policy:
 # ['>', '>', '^', '<']
 # ['>', '^', '^', '<']
 # ['^', ' ', ' ', '^']
+
